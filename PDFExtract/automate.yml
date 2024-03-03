@@ -10,21 +10,33 @@ version: 0.0.1
 
 # input configuration
 input:
-  # templates:
-  #   - path: input.md
+  templates:
+    - path: input.md
   # input variables
   variables:
     - id: document
       view: file
       path: document.pdf
-    - id: choices # merge or split
+    - id: options # merge or split or text
       view: radio
       path: variables.dictionary
       mode: input
       configuration:
-        path: choices.json
+        options:
+          - name: Merge
+            value: merge
+          - name: Split
+            value: split
+          - name: Text
+            value: text
     - id: text
       view: string
+      path: variables.dictionary
+    - id: beforeTarget
+      view: number
+      path: variables.dictionary
+    - id: afterTarget
+      view: number
       path: variables.dictionary
 
 # output configuration
@@ -38,8 +50,8 @@ output:
       path: splitDocuments.zip
 
 # batches configuration
-# batches:
-#   - folder: batches/example1
+batches:
+  - folder: batches/example1
 #   - folder: batches/example2
 #   - folder: batches/example3
 
