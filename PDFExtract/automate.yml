@@ -27,8 +27,8 @@ input:
             value: merge
           - name: Split
             value: split
-          - name: Text
-            value: text
+          # - name: Text   # will add this functionality later
+          #   value: text
     - id: text
       view: string
       path: variables.dictionary
@@ -42,12 +42,9 @@ input:
 # output configuration
 output:
   variables:
-    - id: extractedDocument
-      view: file
-      path: ExtractedDocument.pdf
-    - id: splitDocument
-      view: file
-      path: splitDocuments.zip
+    - id: outputDocument
+      view: link
+      path: outputDocument.pdf
 
 # batches configuration
 batches:
@@ -59,10 +56,10 @@ batches:
 scripts:
   - command: python3 run.py {input_folder} {output_folder}
 
-# environment:
-#   packages:
-#     - id: networkx[default]
-#       manager: pip
+environment:
+  packages:
+    - id: pypdf
+      manager: pip
 #     - id: matplotlib
 #       manager: pip
 #     - id: Pillow

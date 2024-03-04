@@ -2,7 +2,7 @@
 #### This tool extracts information from PDF documents with the click of a button.
 
 ## Step 1: Text to extract
-#### First, input the text you would like to retrieve from the pdf. If you would like to use several words or phrases, encase them with [{}]. For example: [{word1}][{word2}][{example phrase}]
+#### First, input the text you would like to retrieve from the pdf. Seperate all words with |. For example: word1|word2|example phrase
 
 { text }
 
@@ -12,8 +12,8 @@
     - This option will merge all pages where the words/phrases were found. 
 - Split
     - This option will output a zip containing individual pdfs that contain the pages where the words/phrases were found.
-- Text
-    - This option will only give the specific sentences where the words/phrases were found.
+<!-- - Text
+    - This option will only give the specific sentences where the words/phrases were found. -->
 
 { options }
 

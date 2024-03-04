@@ -1,0 +1,8 @@
+Traceback (most recent call last):
+  File "/home/hellorahat/Github/CrossComputeTools/PDFExtract/run.py", line 77, in <module>
+    inputs = inputClass()
+  File "/home/hellorahat/Github/CrossComputeTools/PDFExtract/run.py", line 15, in __init__
+    self.getInputs()
+  File "/home/hellorahat/Github/CrossComputeTools/PDFExtract/run.py", line 18, in getInputs
+    with open(join(input_folder, "variables.dictionary")) as f:
+FileNotFoundError: [Errno 2] No such file or directory: '/home/hellorahat/Github/CrossComputeTools/PDFExtract/batches/example1/input/variables.dictionary'
