@@ -45,6 +45,9 @@ output:
     - id: outputDocument
       view: link
       path: outputDocument.pdf
+    - id: outputZip
+      view: link
+      path: outputZip.zip
 
 # batches configuration
 batches:
