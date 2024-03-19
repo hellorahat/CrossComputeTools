@@ -1,0 +1,56 @@
+---
+# version of crosscompute
+crosscompute: 0.9.4
+
+# name of your automation
+name: DataAnonymizer
+
+# version of your automation
+version: 0.0.1
+
+# input configuration
+input:
+  templates:
+    - path: input.md
+  # input variables
+  variables:
+    - id: csv
+      view: file
+      path: input.csv
+      label: CSV
+    - id: generalization_columns
+      view: text
+      path: variables.dictionary
+    - id: suppression_columns
+      view: text
+      path: variables.dictionary
+    
+# output configuration
+output:
+  variables:
+    - id: out_csv
+      view: link
+      path: out.csv
+
+# batches configuration
+batches:
+  - folder: batches/example1
+#   - folder: batches/example2
+#   - folder: batches/example3
+
+# script configuration
+scripts:
+  - command: python3 run.py {input_folder} {output_folder}
+
+display: 
+  styles: 
+    - path: style.css
+  # pages:
+  #   - id: input
+  #     configuration:
+  #       design: none
+
+# environment:
+#   packages:
+#     - id:
+#       manager: pip

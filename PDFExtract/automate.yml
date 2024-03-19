@@ -63,7 +63,3 @@ environment:
   packages:
     - id: pypdf
       manager: pip
-#     - id: matplotlib
-#       manager: pip
-#     - id: Pillow
-#       manager: pip
