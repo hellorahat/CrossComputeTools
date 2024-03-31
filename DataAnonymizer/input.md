@@ -10,3 +10,5 @@
 
 ## Step 3: Specify Columns to Generalize
 { generalization_columns }
+
+{ textToExtract }

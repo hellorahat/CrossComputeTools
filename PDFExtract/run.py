@@ -1,7 +1,9 @@
 import json
 from sys import argv
 from os.path import join
+import os
 from pypdf import PdfReader, PdfWriter
+from zipfile import ZipFile
 
 input_folder, output_folder = argv[1:]
 
@@ -11,8 +13,11 @@ class inputProcessorClass:
         self.option = "" # merge, split, or text
         self.inputString = ""
         self.inputWordList = []
-        self.previousPagesOrSentences = 0
-        self.futurePagesOrSentences = 0
+        self.previousPages = -1
+        self.futurePages = -1
+        self.previousSentences = -1
+        self.futureSentences = -1
+        self.pageCount = 0
         
     def processWords(self):
         inputWords = []
@@ -20,7 +25,7 @@ class inputProcessorClass:
         for char in self.inputString: # iterate through all characters in the input string
             currentWord += char
             end = currentWord[-1:]
-            if not (end == "|"):
+            if not (end == "\n"):
                 continue
             inputWords.append(currentWord[:-1]) # if end char is the word separator, we will append it to our list of words
             currentWord = ""
@@ -33,44 +38,99 @@ class inputProcessorClass:
         try:
             pdf_reader = PdfReader(inputPath)
             self.pages = pdf_reader._get_num_pages()
-
+            self.pageCount = pdf_reader._get_num_pages()
             with open(join(input_folder, "variables.dictionary")) as f:
                 data = json.load(f)
                 self.option = data["options"]
-                self.inputString = data["text"]
+                self.inputString = data["textToExtract"]
                 self.processWords() # sets inputWordList after processing
-                self.previousPagesOrSentences = data["beforeTarget"]
-                self.futurePagesOrSentences = data["afterTarget"]
+                
+                # set pages/sentences before and after
+                if self.option == "text":
+                    self.previousSentences = data["beforeTarget"]
+                    self.futureSentences = data["afterTarget"]
+                else:
+                    self.previousPages = data["beforeTarget"]
+                    self.futurePages = data["afterTarget"]
         except Exception as e:
             print(f"An error occurred while processing inputs: {e}")
 
-    def alterPageSelection(self, pageList):
+    def alterMergedPageSelection(self, pageList): 
+        """
+        Generate a 1D list of page numbers including pages before and after according to the selection.
+
+        Parameters:
+            page_list (list): List of selected page numbers.
+
+        Returns:
+            list: Modified page list.
+        """
         try:
+            pageCount = self.getPageCount()
             pagesBefore = self.getPreviousPages()
             pagesAfter = self.getFuturePages()
             newPageList = []
-            for i, pageInOriginalDocument in enumerate(pageList):
-                for count, pageToAdd in enumerate(range(pageInOriginalDocument, pagesBefore, -1), start=1):
-                    if i == 0:  # handle first page separately
-                        previousPage = pageList[i]
-                    else:
-                        previousPage = pageList[i - 1]
-                    if pageToAdd <= previousPage:
+            
+            for originalPage in pageList:
+                # append all pages before original
+                for v in range(originalPage-pagesBefore,originalPage):
+                    
+                    if v < 0: # page can't be negative
                         break
-                    if i - count <= 0:  # if the previous page we are adding is <= 0, break
+                    if v in newPageList: # page can't already be in the altered list
                         break
-                    newPageList.append(pageToAdd)  # Add page to the new list
-                newPageList.append(pageInOriginalDocument)  # Add the original page to the new list
-                for count, pageToAdd in enumerate(range(pageInOriginalDocument, pagesAfter), start=1):
-                    if i == len(pageList) - 1:  # handle last page separately
-                        nextPage = pageList[i]
-                    else:
-                        nextPage = pageList[i + 1]
-                    if pageToAdd >= nextPage:
+                    newPageList.append(v)
+                
+                # append original page and all pages after
+                for v in range(originalPage, originalPage+(pagesAfter+1)):
+                    
+                    if v > pageCount: # page can't be greater than total pages in pdf
                         break
-                    if i + count > self.pages:  # if the next page we are adding is > max pages in pdf, break
+                    if v in newPageList: # page can't already be in the altered list
                         break
-                    newPageList.append(pageToAdd)  # Add page to the new list
+                    newPageList.append(v)
+                    
+            return newPageList  # Return the new modified page list
+        except Exception as e:
+            print(f"An error occurred while altering page selection: {e}")
+            
+    def alterSplitPageSelection(self, pageList):
+        """
+        Generate a 2D list of page ranges including pages before and after according to the selection.
+
+        Parameters:
+            page_list (list): List of selected page numbers.
+
+        Returns:
+            list[list]: Modified page list.
+        """
+        try:
+            pageCount = self.getPageCount()
+            pagesBefore = self.getPreviousPages()
+            pagesAfter = self.getFuturePages()
+            newPageList = []
+            
+            for originalPage in pageList:
+                pageRange = []
+                # append all pages before original
+                for v in range(originalPage-pagesBefore,originalPage):
+                    
+                    if v < 0: # page can't be negative
+                        break
+                    if v in newPageList: # page can't already be in the altered list
+                        break
+                    pageRange.append(v)
+                
+                # append original page and all pages after
+                for v in range(originalPage, originalPage+(pagesAfter+1)):
+                    
+                    if v > pageCount: # page can't be greater than total pages in pdf
+                        break
+                    if v in newPageList: # page can't already be in the altered list
+                        break
+                    pageRange.append(v)
+                    
+                newPageList.append(pageRange) # append the range to the updated list
             return newPageList  # Return the new modified page list
         except Exception as e:
             print(f"An error occurred while altering page selection: {e}")
@@ -85,24 +145,36 @@ class inputProcessorClass:
     def getOption(self):
         return self.option
     
+    def getPageCount(self):
+        return self.pageCount
+    
     def getInputWordList(self):
         return self.inputWordList
     
     def getInputString(self):
         return self.inputWordString
     
-    def getPreviousPagesOrSentences(self):
-        return self.previousPagesOrSentences
+    def getPreviousPages(self):
+        return self.previousPages
     
-    def getFuturePagesOrSentences(self):
-        return self.futurePagesOrSentences
+    def getFuturePages(self):
+        return self.futurePages
+    
+    def getPreviousSentences(self):
+        return self.previousSentences
+    
+    def getFutureSentences(self):
+        return self.futureSentences
 
 class outputProcessorClass:
     def __init__(self):
-        self.outputPath = join(output_folder, "outputDocument.pdf")
-        
-    def getOutPath(self):
-        return self.outputPath
+        self.mergeOutputPath = join(output_folder, "outputDocument.pdf")
+        self.splitOutputPath = join(output_folder, "outputZip.zip")
+    def getMergedOutPath(self):
+        return self.mergeOutputPath
+    
+    def getSplitOutPath(self):
+        return self.splitOutputPath
         
 class PdfHandler:
     def __init__(self, inputPath):
@@ -126,12 +198,32 @@ class PdfHandler:
             pdf_writer = PdfWriter()
             for pageNum in pages:
                 pdf_writer.add_page(pdf_reader.pages[pageNum])
-            with open(outputProcessor.getOutPath(), "wb") as f:
+            with open(outputProcessor.getMergedOutPath(), "wb") as f:
                 pdf_writer.write(f)
         except Exception as e:
             print(f"An error occurred while merging pages: {e}")
 
-    def splitPages(self, pages):
+    def splitPages(self, rangeList):
+        try:
+            outputProcessor = outputProcessorClass()
+            pdf_reader = PdfReader(self.path)
+            with ZipFile(outputProcessor.getSplitOutPath(), "w") as zip:
+                for i, range in enumerate(rangeList):
+                    pdf_writer = PdfWriter()
+                    
+                    for page in range:
+                        pdf_writer.add_page(pdf_reader.pages[page])
+                        
+                    with open(f"pdf_{i}.pdf", "wb") as f:
+                        pdf_writer.write(f)
+                        
+                    zip.write(f.name, os.path.basename(f.name))
+                    os.remove(f.name)
+        except Exception as e:
+            print(f"An error occurred while splitting pages: {e}")
+
+class textHandler:
+    def getSentences(self, pageList):
         pass
 
 try:
@@ -148,14 +240,14 @@ try:
         exit()
 
     if(inputProcessor.getOption() == "merge"):
-        pagesWithSelectedWordList = inputProcessor.alterPageSelection(pagesWithSelectedWordList) # alter the pageList with pagesBefore and pagesAfter
+        pagesWithSelectedWordList = inputProcessor.alterMergedPageSelection(pagesWithSelectedWordList) # alter the pageList with pagesBefore and pagesAfter
         inputPdf.mergePages(pagesWithSelectedWordList) # merge the pages and output it (built-in to the mergePages method)
 
     if(inputProcessor.getOption() == "split"):
-        pagesWithSelectedWordList = inputProcessor.alterPageSelection(pagesWithSelectedWordList) # alter the pageList with pagesBefore and pagesAfter
+        pagesWithSelectedWordList = inputProcessor.alterSplitPageSelection(pagesWithSelectedWordList) # alter the pageList with pagesBefore and pagesAfter
         inputPdf.splitPages(pagesWithSelectedWordList)
 
     if(inputProcessor.getOption() == "text"):
         pass
 except Exception as e:
-    print(f"An error occurred: {e}")
+    print(f"An error occurred in Main: {e}")

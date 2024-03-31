@@ -4,7 +4,7 @@
 ## Step 1: Text to extract
 #### First, input the text you would like to retrieve from the pdf. Seperate all words with |. For example: word1|word2|example phrase
 
-{ text }
+{ textToExtract }
 
 ## Step 2: Merge/Split/Text
 #### There are several options you can choose from.

@@ -29,8 +29,8 @@ input:
             value: split
           # - name: Text   # will add this functionality later
           #   value: text
-    - id: text
-      view: string
+    - id: textToExtract
+      view: text
       path: variables.dictionary
     - id: beforeTarget
       view: number
@@ -41,6 +41,8 @@ input:
 
 # output configuration
 output:
+  templates:
+    - path: output.md
   variables:
     - id: outputDocument
       view: link
@@ -58,6 +60,10 @@ batches:
 # script configuration
 scripts:
   - command: python3 run.py {input_folder} {output_folder}
+
+display: 
+  styles: 
+    - path: style.css
 
 environment:
   packages:
