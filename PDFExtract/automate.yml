@@ -27,8 +27,8 @@ input:
             value: merge
           - name: Split
             value: split
-          # - name: Text   # will add this functionality later
-          #   value: text
+          - name: Text
+            value: text
     - id: textToExtract
       view: text
       path: variables.dictionary
@@ -50,6 +50,9 @@ output:
     - id: outputZip
       view: link
       path: outputZip.zip
+    - id: outputText
+      view: link
+      path: outputText.txt
 
 # batches configuration
 batches:
@@ -68,4 +71,6 @@ display:
 environment:
   packages:
     - id: pypdf
+      manager: pip
+    - id: pdfminer.six
       manager: pip

@@ -5,3 +5,7 @@
 # Split Document: 
 
 { outputZip }
+
+# Text File:
+
+{ outputText }

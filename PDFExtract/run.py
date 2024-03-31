@@ -4,12 +4,15 @@ from os.path import join
 import os
 from pypdf import PdfReader, PdfWriter
 from zipfile import ZipFile
+from pdfminer.high_level import extract_text
+import re
 
 input_folder, output_folder = argv[1:]
 
 class inputProcessorClass:
     def __init__(self):
-        self.inputPdf = PdfHandler(join(input_folder, "document.pdf"))
+        self.inputPdf = PdfHandlerClass(join(input_folder, "document.pdf"))
+        self.inputPath = join(input_folder, "document.pdf")
         self.option = "" # merge, split, or text
         self.inputString = ""
         self.inputWordList = []
@@ -135,7 +138,9 @@ class inputProcessorClass:
         except Exception as e:
             print(f"An error occurred while altering page selection: {e}")
 
-
+    def getPath(self):
+        return self.inputPath
+    
     def getPages(self):
         return self.pages
     
@@ -170,13 +175,18 @@ class outputProcessorClass:
     def __init__(self):
         self.mergeOutputPath = join(output_folder, "outputDocument.pdf")
         self.splitOutputPath = join(output_folder, "outputZip.zip")
+        self.textOutputPath = join(output_folder, "outputText.txt")
+        
     def getMergedOutPath(self):
         return self.mergeOutputPath
     
     def getSplitOutPath(self):
         return self.splitOutputPath
+    
+    def getTextOutPath(self):
+        return self.textOutputPath
         
-class PdfHandler:
+class PdfHandlerClass:
     def __init__(self, inputPath):
         self.path = inputPath
     
@@ -222,10 +232,40 @@ class PdfHandler:
         except Exception as e:
             print(f"An error occurred while splitting pages: {e}")
 
-class textHandler:
-    def getSentences(self, pageList):
-        pass
-
+class textHandlerClass:
+    def sentenceTokenizer(self, text):
+        sentence_endings = r'[.!?]'
+        sentences = re.split(sentence_endings, text)
+        sentences = [sentence.strip() for sentence in sentences if sentence.strip()] # remove white space
+        return sentences
+    
+    def pdfToText(self, pdfPath):
+        return extract_text(pdfPath)
+            
+    def getSentences(self, pdfPath, wordList):
+        try:
+            sentencesBefore = inputProcessor.getPreviousSentences()
+            sentencesAfter = inputProcessor.getFutureSentences()
+            outputText = ""
+            
+            text = self.pdfToText(pdfPath)
+            sentenceList = self.sentenceTokenizer(text)
+            
+            for i,sentence in enumerate(sentenceList):
+                if any(phrase in sentence for phrase in wordList): # if word is in sentence
+                    # get previous sentences (exclusive)
+                    for j in range(max(0, i - sentencesBefore), i):
+                        outputText = sentenceList[j] + outputText + " "
+                    
+                    # get future sentences (inclusive)
+                    for j in range(i, min(len(sentenceList), i + sentencesAfter + 1)):
+                        outputText = outputText + sentenceList[j] + " "
+                    outputText += "\n"
+                
+            return outputText
+        except Exception as e:
+            print(f"An error occured in getSentences(): {e}")
+                        
 try:
     inputProcessor = inputProcessorClass()
     inputProcessor.processInputs() # Initialize inputs, put words into inputWordList
@@ -248,6 +288,9 @@ try:
         inputPdf.splitPages(pagesWithSelectedWordList)
 
     if(inputProcessor.getOption() == "text"):
-        pass
+        textHandler = textHandlerClass()
+        text = textHandler.getSentences(inputProcessor.getPath(), inputProcessor.getInputWordList())
+        with open(outputProcessor.getTextOutPath(), "w") as text_file:
+            text_file.write(text)
 except Exception as e:
     print(f"An error occurred in Main: {e}")
