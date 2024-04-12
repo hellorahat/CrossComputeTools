@@ -40,8 +40,8 @@ class inputProcessorClass:
 
         try:
             pdf_reader = PdfReader(inputPath)
-            self.pages = pdf_reader._get_num_pages()
-            self.pageCount = pdf_reader._get_num_pages()
+            self.pages = len(pdf_reader.pages)
+            self.pageCount = len(pdf_reader.pages)
             with open(join(input_folder, "variables.dictionary")) as f:
                 data = json.load(f)
                 self.option = data["options"]
@@ -189,7 +189,7 @@ class PdfHandlerClass:
     def searchWords(self, inputWords):
         foundPages = []
         pdf_reader = PdfReader(self.path)
-        for pageNum in range(pdf_reader._get_num_pages()):
+        for pageNum in range(len(pdf_reader.pages)):
             page = pdf_reader._get_page(pageNum)
             for word in inputWords: # iterate through each word in all input words
                 if(word in page.extract_text()):
