@@ -1,0 +1,72 @@
+---
+# version of crosscompute
+crosscompute: 0.9.4
+
+# name of your automation
+name: PDFExtract
+
+# version of your automation
+version: 0.0.1
+
+# input configuration
+input:
+  templates:
+    - path: input.md
+  # input variables
+  variables:
+    - id: document
+      view: file
+      path: document.pdf
+    - id: options # merge or split or text
+      view: radio
+      path: variables.dictionary
+      mode: input
+      configuration:
+        options:
+          - name: Merge
+            value: merge
+          - name: Split
+            value: split
+    - id: textToExtract
+      view: text
+      path: variables.dictionary
+    - id: beforeTarget
+      view: number
+      path: variables.dictionary
+    - id: afterTarget
+      view: number
+      path: variables.dictionary
+
+# output configuration
+output:
+  templates:
+    - path: output.md
+  variables:
+    - id: outputDocument
+      view: link
+      path: outputDocument.pdf
+    - id: outputZip
+      view: link
+      path: outputZip.zip
+    - id: outputText
+      view: link
+      path: outputText.txt
+
+# batches configuration
+batches:
+  - folder: batches/example1
+#   - folder: batches/example2
+#   - folder: batches/example3
+
+# script configuration
+scripts:
+  - command: python3 run.py {input_folder} {output_folder}
+
+display: 
+  styles: 
+    - path: style.css
+
+environment:
+  packages:
+    - id: pypdf
+      manager: pip

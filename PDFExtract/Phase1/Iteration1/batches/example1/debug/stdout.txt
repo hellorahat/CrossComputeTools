@@ -1,0 +1,2 @@
+An error occurred while processing inputs: [Errno 2] No such file or directory: '/home/hellorahat/Github/CrossComputeTools/PDFExtract/Phase1/Iteration1/batches/example1/input/document.pdf'
+An error occurred in Main: [Errno 2] No such file or directory: '/home/hellorahat/Github/CrossComputeTools/PDFExtract/Phase1/Iteration1/batches/example1/input/document.pdf'

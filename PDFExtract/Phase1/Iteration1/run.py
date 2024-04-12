@@ -4,8 +4,6 @@ from os.path import join
 import os
 from pypdf import PdfReader, PdfWriter
 from zipfile import ZipFile
-from pdfminer.high_level import extract_text
-import re
 
 input_folder, output_folder = argv[1:]
 
@@ -18,8 +16,6 @@ class inputProcessorClass:
         self.inputWordList = []
         self.previousPages = -1
         self.futurePages = -1
-        self.previousSentences = -1
-        self.futureSentences = -1
         self.pageCount = 0
         
     def processWords(self):
@@ -74,20 +70,18 @@ class inputProcessorClass:
             pagesAfter = self.getFuturePages()
             newPageList = []
             
+            # append all pages before original
             for originalPage in pageList:
-                # append all pages before original
-                for v in range(originalPage-pagesBefore,originalPage):
+                for v in range(max(0,originalPage-pagesBefore),originalPage): # start at 0 instead if starting page would be negative
                     
-                    if v < 0: # page can't be negative
-                        break
                     if v in newPageList: # page can't already be in the altered list
-                        break
+                        continue
                     newPageList.append(v)
                 
                 # append original page and all pages after
-                for v in range(originalPage, originalPage+(pagesAfter+1)):
-                    
-                    if v > pageCount: # page can't be greater than total pages in pdf
+                for v in range(originalPage, originalPage+(pagesAfter+1)):   
+                           
+                    if v > pageCount-1: # page can't be greater than total pages in pdf
                         break
                     if v in newPageList: # page can't already be in the altered list
                         break
@@ -116,10 +110,8 @@ class inputProcessorClass:
             for originalPage in pageList:
                 pageRange = []
                 # append all pages before original
-                for v in range(originalPage-pagesBefore,originalPage):
+                for v in range(max(0,originalPage-pagesBefore),originalPage): # start at 0 instead if starting page would be negative
                     
-                    if v < 0: # page can't be negative
-                        break
                     if v in newPageList: # page can't already be in the altered list
                         break
                     pageRange.append(v)
@@ -127,7 +119,7 @@ class inputProcessorClass:
                 # append original page and all pages after
                 for v in range(originalPage, originalPage+(pagesAfter+1)):
                     
-                    if v > pageCount: # page can't be greater than total pages in pdf
+                    if v > pageCount-1: # page can't be greater than total pages in pdf
                         break
                     if v in newPageList: # page can't already be in the altered list
                         break
@@ -164,12 +156,7 @@ class inputProcessorClass:
     
     def getFuturePages(self):
         return self.futurePages
-    
-    def getPreviousSentences(self):
-        return self.previousSentences
-    
-    def getFutureSentences(self):
-        return self.futureSentences
+
 
 class outputProcessorClass:
     def __init__(self):
@@ -231,41 +218,7 @@ class PdfHandlerClass:
                     os.remove(f.name)
         except Exception as e:
             print(f"An error occurred while splitting pages: {e}")
-
-class textHandlerClass:
-    def sentenceTokenizer(self, text):
-        sentence_endings = r'[.!?]'
-        sentences = re.split(sentence_endings, text)
-        sentences = [sentence.strip() for sentence in sentences if sentence.strip()] # remove white space
-        return sentences
-    
-    def pdfToText(self, pdfPath):
-        return extract_text(pdfPath)
-            
-    def getSentences(self, pdfPath, wordList):
-        try:
-            sentencesBefore = inputProcessor.getPreviousSentences()
-            sentencesAfter = inputProcessor.getFutureSentences()
-            outputText = ""
-            
-            text = self.pdfToText(pdfPath)
-            sentenceList = self.sentenceTokenizer(text)
-            
-            for i,sentence in enumerate(sentenceList):
-                if any(phrase in sentence for phrase in wordList): # if word is in sentence
-                    # get previous sentences (exclusive)
-                    for j in range(max(0, i - sentencesBefore), i):
-                        outputText = sentenceList[j] + outputText + " "
-                    
-                    # get future sentences (inclusive)
-                    for j in range(i, min(len(sentenceList), i + sentencesAfter + 1)):
-                        outputText = outputText + sentenceList[j] + " "
-                    outputText += "\n"
-                
-            return outputText
-        except Exception as e:
-            print(f"An error occured in getSentences(): {e}")
-                        
+        
 try:
     inputProcessor = inputProcessorClass()
     inputProcessor.processInputs() # Initialize inputs, put words into inputWordList
@@ -281,16 +234,13 @@ try:
 
     if(inputProcessor.getOption() == "merge"):
         pagesWithSelectedWordList = inputProcessor.alterMergedPageSelection(pagesWithSelectedWordList) # alter the pageList with pagesBefore and pagesAfter
+        print(pagesWithSelectedWordList)
         inputPdf.mergePages(pagesWithSelectedWordList) # merge the pages and output it (built-in to the mergePages method)
 
     if(inputProcessor.getOption() == "split"):
         pagesWithSelectedWordList = inputProcessor.alterSplitPageSelection(pagesWithSelectedWordList) # alter the pageList with pagesBefore and pagesAfter
+        print(pagesWithSelectedWordList)
         inputPdf.splitPages(pagesWithSelectedWordList)
 
-    if(inputProcessor.getOption() == "text"):
-        textHandler = textHandlerClass()
-        text = textHandler.getSentences(inputProcessor.getPath(), inputProcessor.getInputWordList())
-        with open(outputProcessor.getTextOutPath(), "w") as text_file:
-            text_file.write(text)
 except Exception as e:
     print(f"An error occurred in Main: {e}")
