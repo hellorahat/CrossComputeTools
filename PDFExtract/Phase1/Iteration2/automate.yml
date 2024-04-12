@@ -74,5 +74,3 @@ environment:
       manager: pip
     - id: pdfminer.six
       manager: pip
-    - id: nltk
-      manager: pip
