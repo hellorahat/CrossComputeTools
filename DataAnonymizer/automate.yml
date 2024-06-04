@@ -18,10 +18,16 @@ input:
       view: file
       path: input.csv
       label: CSV
-    - id: generalization_columns
+    - id: generalization_number_columns
+      view: text
+      path: variables.dictionary
+    - id: generalization_location_columns
       view: text
       path: variables.dictionary
     - id: suppression_columns
+      view: text
+      path: variables.dictionary
+    - id: words_to_suppress
       view: text
       path: variables.dictionary
     
