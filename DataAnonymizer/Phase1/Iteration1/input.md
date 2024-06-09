@@ -6,7 +6,7 @@
 { csv }
 
 ## Step 2: Specify Columns to Suppress
-#### Input the names of the columns here. Each column should be in a separate line. Specify characters to suppress by adding a column followed by an integer.
+#### Input the names of the columns here. Each column should be in a separate line. Specify characters to suppress by adding a colon followed by an integer.
 For example - ColumnName:3
 - 0 (or no integer) indicates that all characters will be suppressed
 - An integer n indicates to suppress the first n characters
@@ -18,9 +18,7 @@ For example - ColumnName:3
 #### Separate words in a separate line
 { words_to_suppress }
 
-## Step 4: Specify Numbers to Generalize
-#### Input the names of the columns here. Each column should be in a separate line. Specify the digit to round to by adding a column followed by an integer.
-{ generalization_number_columns }
-
-## Step 5: Specify Locations to Generalize
-{ generalization_location_columns }
+## Step 4: Specify Columns to Generalize
+#### Input the names of the columns here. Each column should be in a separate line. Specify the digit to round to by adding a colon followed by an integer.
+#### Location columns can also be generalized.
+{ generalization_columns }

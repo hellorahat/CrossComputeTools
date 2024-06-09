@@ -18,10 +18,7 @@ input:
       view: file
       path: input.csv
       label: CSV
-    - id: generalization_number_columns
-      view: text
-      path: variables.dictionary
-    - id: generalization_location_columns
+    - id: generalization_columns
       view: text
       path: variables.dictionary
     - id: suppression_columns
@@ -34,7 +31,7 @@ input:
 # output configuration
 output:
   variables:
-    - id: out_csv
+    - id: out
       view: link
       path: out.csv
 
@@ -56,7 +53,7 @@ display:
   #     configuration:
   #       design: none
 
-# environment:
-#   packages:
-#     - id:
-#       manager: pip
+environment:
+  packages:
+    - id: pandas
+      manager: pip
