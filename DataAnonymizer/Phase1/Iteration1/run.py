@@ -1,4 +1,5 @@
 import json
+import re
 import pandas as pd
 from sys import argv
 from os.path import join
@@ -67,14 +68,17 @@ class suppressor_class:
         # Iterate through every cell in the dataframe to locate each word
         for row_index in range(df.shape[0]):
             for col_index in range(df.shape[1]):
-                cell_value = df.iat[row_index,col_index]
-                cell_words = cell_value.split()
+                print("Current Cell:",df.iat[row_index,col_index])
                 # Suppress if word is found
                 for word_to_suppress, chars_to_suppress in self.words.items():
+                    cell_value = df.iat[row_index,col_index]
+                    cell_words = re.split(f"({word_to_suppress})", cell_value)
+                    print("Word to suppress:",word_to_suppress)
+                    print("split string:",cell_words)
                     for i, cell_word in enumerate(cell_words):
                         if word_to_suppress == cell_word:
                             cell_words[i] = self.suppress(word_to_suppress, chars_to_suppress)
-                    df.iat[row_index, col_index] = ' '.join(cell_words)
+                            df.iat[row_index, col_index] = ''.join(cell_words)
                 
         return df
     
