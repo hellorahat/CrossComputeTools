@@ -4,6 +4,9 @@ import math
 import pandas as pd
 from sys import argv
 from os.path import join
+from geopy.geocoders import Nominatim
+from geopy.exc import GeocoderTimedOut, GeocoderServiceError
+import pycountry_convert as pc
 
 input_folder, output_folder = argv[1:]
 
@@ -154,11 +157,52 @@ class number_rounder:
         return rounded_num * sign
 
 class location_generalizer:
-    def __init__(self):
-        pass
+    def __init__(self, locations_to_generalize):
+        # Initialize variables
+        self.columns = {}
 
-    def process_string(self):
-        pass
+        # Process data
+        self.process_string(locations_to_generalize, self.columns)
+
+    def process_string(self, s, dictionary):
+        entries = s.split("\n")
+        for entry in entries:
+            parts = entry.split(":")
+            if len(parts) == 2:
+                col = parts[0]
+                generalized_location = parts[1]
+            else: # if the digit to round to is not specified, generalize to country
+                col = entry
+                generalized_location = "country"
+
+            dictionary[col] = generalized_location
+
+    def generalize_df_cols(self, df):
+        for col_name, generalized_location in self.columns.items():
+            if col_name in df.columns:
+                for i, cell in enumerate(df[col_name]):
+                    df.at[i,col_name] = self._generalize(cell,generalized_location)
+
+    def _generalize(self, full_location, generalized_location):
+        generalized_location = generalized_location.lower()
+        geolocator = Nominatim(user_agent="location_generalizer")
+        try:
+            location_data = geolocator.geocode(full_location, addressdetails=True)
+            if not location_data:
+                return "Location not found"
+            
+            address = location_data.raw['address']
+            
+            if generalized_location == 'city':
+                return address.get('city', address.get('town', address.get('village', '')))
+            elif generalized_location == 'state':
+                return address.get('state', '')
+            elif generalized_location == 'country':
+                return address.get('country', '')
+            else:
+                return "Invalid level"
+        except (GeocoderTimedOut, GeocoderServiceError) as e:
+            return f"Error: {e}"
 
 if __name__ == "__main__":
     input_processor = input_processor_class()
@@ -171,5 +215,8 @@ if __name__ == "__main__":
 
     rounder = number_rounder(input_processor.numbers_to_round)
     rounder.round_df_cols(df)
+
+    generalizer = location_generalizer(input_processor.locations_to_generalize)
+    generalizer.generalize_df_cols(df)
 
     df.to_csv(output_processor.output_path, index=False)

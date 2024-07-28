@@ -60,3 +60,7 @@ environment:
   packages:
     - id: pandas
       manager: pip
+    - id: geopy
+      manager: pip
+    - id: pycountry
+      manager: pip

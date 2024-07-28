@@ -27,9 +27,8 @@ For example - Salary:3 - will round the Salary column to the 3rd digit.
 ## Step 5: Specify Locations to Generalize
 #### Input the names of the columns here. Each column should be in a separate line. Specify what region to generalize to by adding a colon followed by region.
 For example:
-- LocationColumn:City
-- LocationColumn:State
-- LocationColumn:Country
-- LocationColumn:Continent
+- LocationColumn:city
+- LocationColumn:state
+- LocationColumn:country
 
 { locations_to_generalize }
