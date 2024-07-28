@@ -1,5 +1,6 @@
 import json
 import re
+import math
 import pandas as pd
 from sys import argv
 from os.path import join
@@ -50,9 +51,9 @@ class suppressor_class:
                 col = entry
                 chars_to_suppress = '0'  # '0' indicates to suppress the entire word
             
-            # Check to see if the amount of characters to suppress doesn't exceed the length of the word
-            if(abs(int(chars_to_suppress)) >= len(col)):
-                chars_to_suppress = '0' # '0' indicates to suppress the entire word
+            # # Check to see if the amount of characters to suppress doesn't exceed the length of the word
+            # if(abs(int(chars_to_suppress)) >= len(col)):
+            #     chars_to_suppress = '0' # '0' indicates to suppress the entire word
 
             dictionary[col] = chars_to_suppress
         
@@ -96,15 +97,61 @@ class suppressor_class:
                                             
         
 class number_rounder:
-    def __init__(self):
+    def __init__(self, digits_to_round):
         # Initialize variables
         self.columns = {}
 
         # Process data
-        process_string(numbers_to_round, self.columns)
+        self.process_string(digits_to_round, self.columns)
     
-    def process_string(self):
-        pass
+    def process_string(self, s, dictionary):
+        entries = s.split("\n")
+        for entry in entries:
+            parts = entry.split(":")
+            if len(parts) == 2:
+                col = parts[0]
+                digits_to_round = parts[1]
+            else: # if the digit to round to is not specified, round to leftmost digit
+                col = entry
+                digits_to_round = "-1" # -1 means to round the leftmost digit
+
+            dictionary[col] = digits_to_round
+
+    def round_df_cols(self, df):
+        for col_name, digits_to_round in self.columns.items():
+            if col_name in df.columns:
+                for i, cell in enumerate(df[col_name]):
+                    df.at[i,col_name] = self._round(cell,digits_to_round)
+
+    def _round(self, s, digit):
+        num = int(s)
+        digit = int(digit)
+        if num == 0:
+            return 0
+
+        num_abs = abs(num)
+        sign = -1 if num < 0 else 1
+
+        # Calculate the power of 10 for the given digit position
+        power = int(math.log10(num_abs))
+        if digit < 0:
+            power = power + digit + 1
+        else:
+            power = power - digit + 1
+
+        # Calculate the rounding base
+        base = num_abs / (10**power)
+
+        # Perform rounding
+        if base >= 5:
+            base = math.ceil(base)
+        else:
+            base = math.floor(base)
+
+        # Calculate the rounded number
+        rounded_num = base * (10**power)
+
+        return rounded_num * sign
 
 class location_generalizer:
     def __init__(self):
@@ -122,4 +169,7 @@ if __name__ == "__main__":
     suppressor = suppressor_class(input_processor.suppression_columns, input_processor.words_to_suppress)
     suppressor.suppress_data(df)
 
-    generalizer = generalizer_class(input_processor.generalization_columns)
+    rounder = number_rounder(input_processor.numbers_to_round)
+    rounder.round_df_cols(df)
+
+    df.to_csv(output_processor.output_path, index=False)
