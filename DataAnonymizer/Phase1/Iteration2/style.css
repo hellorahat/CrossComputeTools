@@ -1,4 +1,7 @@
-.generalization_columns {
+.numbers_to_round {
+    height: 7em;
+}
+.locations_to_generalize {
     height: 7em;
 }
 .suppression_columns {

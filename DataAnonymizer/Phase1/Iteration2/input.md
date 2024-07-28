@@ -18,7 +18,18 @@ For example - ColumnName:3
 #### Separate words in a separate line
 { words_to_suppress }
 
-## Step 4: Specify Columns to Generalize
-#### Input the names of the columns here. Each column should be in a separate line. Specify the digit to round to by adding a colon followed by an integer.
-#### Location columns can also be generalized.
-{ generalization_columns }
+## Step 4: Specify Numbers to Round
+#### Input columns where numbers should be rounded. Specify digit to round to by adding a colon followed by an integer.
+For example - Salary:3 - will round the Salary column to the 3rd digit.
+
+{ numbers_to_round }
+
+## Step 5: Specify Locations to Generalize
+#### Input the names of the columns here. Each column should be in a separate line. Specify what region to generalize to by adding a colon followed by region.
+For example:
+- LocationColumn:City
+- LocationColumn:State
+- LocationColumn:Country
+- LocationColumn:Continent
+
+{ locations_to_generalize }

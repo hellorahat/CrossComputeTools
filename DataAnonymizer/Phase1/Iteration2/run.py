@@ -6,42 +6,17 @@ from os.path import join
 
 input_folder, output_folder = argv[1:]
 
-def process_string(s, dictionary):
-    """
-    This function processes string s data into a dictionary.
-    It will be stored as string:chars_to_suppress
-    
-    Parameters:
-    s: The string to be processed.
-    dictionary: The dictionary to process the data into. 
-    """
-    entries = s.split("\n")
-    for entry in entries:
-        parts = entry.split(":")
-        if len(parts) == 2:  # This indicates that the user specified how many characters should be suppressed
-            col = parts[0]
-            chars_to_suppress = parts[1]
-        else:
-            col = entry
-            chars_to_suppress = '0'  # '0' indicates to suppress the entire word
-        
-        # Check to see if the amount of characters to suppress doesn't exceed the length of the word
-        if(abs(int(chars_to_suppress)) >= len(col)):
-            chars_to_suppress = '0' # '0' indicates to suppress the entire word
-
-        dictionary[col] = chars_to_suppress
-
-
 class input_processor_class:
     def __init__(self):
         self.input_path = join(input_folder, "input.csv")
         
         with open(join(input_folder, "variables.dictionary")) as f:
             data = json.load(f)
-            self.generalization_columns = data["generalization_columns"]
             self.suppression_columns = data["suppression_columns"]
             self.words_to_suppress = data["words_to_suppress"]
-                
+            self.numbers_to_round = data["numbers_to_round"]
+            self.locations_to_generalize = data["locations_to_generalize"]
+            
 class output_processor_class:
     def __init__(self):
         self.output_path = join(output_folder, "out.csv")
@@ -53,8 +28,33 @@ class suppressor_class:
         self.words = {}
         
         # Process data
-        process_string(suppression_columns, self.columns)
-        process_string(words_to_suppress, self.words)
+        self.process_string(suppression_columns, self.columns)
+        self.process_string(words_to_suppress, self.words)
+
+    def process_string(self, s, dictionary):
+        """
+        This function processes string s data into a dictionary.
+        It will be stored as string:chars_to_suppress
+        
+        Parameters:
+        s: The string to be processed.
+        dictionary: The dictionary to process the data into. 
+        """
+        entries = s.split("\n")
+        for entry in entries:
+            parts = entry.split(":")
+            if len(parts) == 2:  # If there are 2 parts, this means that the user specified how many characters should be suppressed
+                col = parts[0]
+                chars_to_suppress = parts[1]
+            else: # otherwise, supress the entire entry
+                col = entry
+                chars_to_suppress = '0'  # '0' indicates to suppress the entire word
+            
+            # Check to see if the amount of characters to suppress doesn't exceed the length of the word
+            if(abs(int(chars_to_suppress)) >= len(col)):
+                chars_to_suppress = '0' # '0' indicates to suppress the entire word
+
+            dictionary[col] = chars_to_suppress
         
     def suppress_data(self, df):
         # Suppress data for columns
@@ -95,14 +95,23 @@ class suppressor_class:
         return s[:-num] + '*' * num
                                             
         
-class generalizer_class:
-    def __init__(self, generalization_columns):
+class number_rounder:
+    def __init__(self):
         # Initialize variables
         self.columns = {}
-        
-        # Process Data
-        process_string(generalization_columns, self.columns)
 
+        # Process data
+        process_string(numbers_to_round, self.columns)
+    
+    def process_string(self):
+        pass
+
+class location_generalizer:
+    def __init__(self):
+        pass
+
+    def process_string(self):
+        pass
 
 if __name__ == "__main__":
     input_processor = input_processor_class()
@@ -114,5 +123,3 @@ if __name__ == "__main__":
     suppressor.suppress_data(df)
 
     generalizer = generalizer_class(input_processor.generalization_columns)
-
-    df.to_csv(output_processor.output_path, index=False)
