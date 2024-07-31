@@ -7,12 +7,12 @@ from os.path import join
 
 from geopy.geocoders import Nominatim
 from geopy.exc import GeocoderTimedOut, GeocoderServiceError
-import pycountry_convert as pc
 
 import base64
 from cryptography.fernet import Fernet
 from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
+
 
 input_folder, output_folder = argv[1:]
 
@@ -189,7 +189,9 @@ class location_generalizer:
         for col_name, generalized_location in self.columns.items():
             if col_name in df.columns:
                 for i, cell in enumerate(df[col_name]):
-                    df.at[i,col_name] = self._generalize(cell,generalized_location)
+                    new_loc = self._generalize(cell,generalized_location)
+                    print(f"Generalized: {cell} -> {new_loc}", flush=True)
+                    df.at[i,col_name] = new_loc
 
     def _generalize(self, full_location, generalized_location):
         generalized_location = generalized_location.lower()
@@ -211,11 +213,6 @@ class location_generalizer:
                 return "Invalid level"
         except (GeocoderTimedOut, GeocoderServiceError) as e:
             return f"Error: {e}"
-        
-from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
-from cryptography.hazmat.primitives import hashes
-from cryptography.fernet import Fernet, InvalidToken
-import base64
 
 class encrypter:
     def __init__(self, columns_to_encrypt):
@@ -304,7 +301,7 @@ if __name__ == "__main__":
     input_processor = input_processor_class()
     output_processor = output_processor_class()
     df = pd.read_csv(input_processor.input_path)
-    df.astype(str)
+    df = df.astype(str)
     
     suppressor = suppressor_class(input_processor.suppression_columns, input_processor.words_to_suppress)
     suppressor.suppress_data(df)

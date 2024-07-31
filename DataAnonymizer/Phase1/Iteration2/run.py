@@ -6,7 +6,6 @@ from sys import argv
 from os.path import join
 from geopy.geocoders import Nominatim
 from geopy.exc import GeocoderTimedOut, GeocoderServiceError
-import pycountry_convert as pc
 
 input_folder, output_folder = argv[1:]
 
